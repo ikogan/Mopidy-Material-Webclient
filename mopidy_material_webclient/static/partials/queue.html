@@ -75,18 +75,33 @@
             </div>
         </md-card>
     </div>
-    <div flex layout-fill>
-        <md-list>
-            <md-list-item class="md-3-line" ng-repeat="t in tracks" ng-click="play(t)">
-                <md-icon class="md-accent" ng-if="t.tlid == playing.tlid && state != 'playing'">play_arrow</md-icon>
-                <md-icon class="md-accent" ng-if="t.tlid == playing.tlid && state == 'playing'">pause</md-icon>
-                <div class="md-list-item-text" ng-class="{'md-offset': (t.tlid != playing.tlid) }">
+    <div flex layout-fill class="tracklist">
+        <md-list sv-root sv-part="tracks" sv-on-sort="move($item, $indexFrom, $indexTo)">
+            <md-list-item class="md-3-line" sv-element ng-repeat="t in tracks"
+                md-swipe-right="remove(t, $index)" md-swipe-left="remove(t, $index)">
+                <md-button class="drag-handle" sv-handle>
+                    <md-icon>drag_handle</md-icon>
+                </md-button>
+                <div class="queue-list-item-play">
+                    <img ng-src="{{ t.track.album.images[0] }}" />
+                    <div class="queue-list-item-play-control show-on-hover" hide-sm>
+                        <md-icon class="md-accent" ng-click="play(t)" ng-if="t.tlid != playing.tlid || state != 'playing'">play_arrow</md-icon>
+                        <md-icon class="md-accent" ng-click="play(t)" ng-if="t.tlid == playing.tlid && state == 'playing'">pause</md-icon>
+                    </div>
+                    <div class="queue-list-item-play-control" hide-gt-sm>
+                        <md-icon class="md-accent" ng-click="play(t)" ng-if="t.tlid != playing.tlid || state != 'playing'">play_arrow</md-icon>
+                        <md-icon class="md-accent" ng-click="play(t)" ng-if="t.tlid == playing.tlid && state == 'playing'">pause</md-icon>
+                    </div>
+                </div>
+                <div class="md-list-item-text">
                     <h3>{{ t.track.name }}</h3>
                     <h4>{{ t.track.artists[0].name }}</h4>
                     <p ng-if="track.comment">{{ t.track.comment }}</p>
                     <p ng-if="!track.comment">{{ t.track.album.name }}</p>
                 </div>
-                <md-icon class="md-secondary" aria-label="Remove" ng-click="remove(t)">clear</md-icon>
+                <md-button ng-click="remove(t)" hide-sm>
+                    <md-icon class="md-secondary" aria-label="Remove">clear</md-icon>
+                </md-button>
             </md-list-item>
         </md-list>
     </div>

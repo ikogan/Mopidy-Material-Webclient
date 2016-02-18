@@ -27,11 +27,11 @@
                     <md-icon>queue_music</md-icon>
                     <p>Playlists</p>
                 </md-list-item>
-                <md-list-item ng-click="goTo('/settings')" ng-if="settings && settings.system_settings !== 'disabled'">
+                <md-list-item ng-click="goTo('/settings')" ng-if="settings && !settings.system_settings_enabled">
                     <md-icon>settings</md-icon>
                     <p>Settings</p>
                 </md-list-item>
-                <md-list-item ng-click="system($event)" ng-if="settings && settings.power_control !== 'disabled'">
+                <md-list-item ng-click="system($event)" ng-if="settings && !settings.power_control_enabled">
                     <md-icon>power_settings_new</md-icon>
                     <p>System</p>
                 </md-list-item>
@@ -74,7 +74,11 @@
     <script src="/material-webclient/scripts/angular-aria.min.js"></script>
     <script src="/material-webclient/scripts/angular-material.min.js"></script>
     <script src="/material-webclient/scripts/angular-route.min.js"></script>
+    <script src="/material-webclient/scripts/angular-sortable-view.min.js"></script>
     <script src="/material-webclient/scripts/lodash.min.js"></script>
-    <script src="/material-webclient/scripts/app.min.js"></script>
+    <!-- <script src="/material-webclient/scripts/app.min.js"></script> -->
+    <script src="/material-webclient/src/app.js"></script>
+    <script src="/material-webclient/src/controllers.js"></script>
+    <script src="/material-webclient/src/services.js"></script>
 </body>
 </html>

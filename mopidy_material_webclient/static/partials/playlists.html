@@ -21,7 +21,7 @@
             </md-card-content>
         </md-card>
     </div>
-    <md-list flex>
+    <md-list flex class="tracklist">
         <md-list-item ng-repeat="ref in content" ng-click="goTo(ref)">
             <md-icon md-font-icon="{{ getFontIcon(ref) }}" class="fa md-list-icon-fa" ng-if="!ref.images || ref.images.length == 0"></md-icon>
             <img class="md-avatar" ng-src="{{ ref.images[0].uri }}" alt="{{ ref.name }}" ng-if="ref.images && ref.images.length > 0" />

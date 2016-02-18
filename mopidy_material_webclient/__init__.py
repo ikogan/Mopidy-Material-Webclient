@@ -34,6 +34,9 @@ class Extension(ext.Extension):
     def get_config_schema(self):
         schema = super(Extension, self).get_config_schema()
         schema['config_file'] = config.String()
+        schema['power_control_enabled'] = config.Boolean()
+        schema['system_settings_enabled'] = config.Boolean()
+        schema['title'] = config.String()
         return schema
 
     def setup(self, registry):
@@ -52,7 +55,7 @@ class Extension(ext.Extension):
 #
 #Get a list of wifi networks in range
 #
-class WifiHandler(tornado.web.RequestHandler): 
+class WifiHandler(tornado.web.RequestHandler):
 
     def get(self):
         cells = Cell.all('wlan0')
@@ -83,17 +86,17 @@ class SettingsHandler(tornado.web.RequestHandler):
 		data = json.loads(self.request.body)
 		logger.info(data)
 		cfg = ConfigObj(self.config_file, encoding='utf8')
-		
+
 		if cfg['network']['hostname'] != data['network']['hostname']:
             		os.system('sh hostname.sh {0}'.format(data['network']['hotname']))
-        
+
         	if cfg['network']['wifi_network'] != data['network']['wifi_network']:
             		os.system('sh wifi.sh "{0}" "{1}"'.format(data['network']['wifi_network'], data['network']['wifi_password']))
-        
+
         	for itm in data:
 			for subitm in data[itm]:
 				cfg[itm][subitm] = data[itm][subitm]
-        
+
         	cfg.write()
         	self.write('{ "message": "Settings saved, system going down now!" }')
         	logger.info('Material webclient rebooting system')
@@ -108,7 +111,7 @@ class RestartHandler(tornado.web.RequestHandler):
         logger.info('Material webclient rebooting system')
         os.system('reboot')
 
-class ExtensionsHandler(tornado.web.RequestHandler): 
+class ExtensionsHandler(tornado.web.RequestHandler):
     def get(self):
         outdated = self.get_argument('outdated', default='false')
         packages = {}

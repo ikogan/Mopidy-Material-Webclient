@@ -7,7 +7,10 @@ services.factory('mopidy', ['$q', '$rootScope', '$location', 'settings',
             mopidy.on("state:online", function () {
                 mopidy.playback.getCurrentTlTrack()
                     .done(function (tltrack) {
-                        mopidy.nowPlaying = tltrack.track;
+                        if(tltrack) {
+                            mopidy.nowPlaying = tltrack.track;
+                        }
+
                         settings.updatePageTitle(tltrack ? 'playing' : 'stopped', mopidy.nowPlaying);
                     });
 
@@ -135,11 +138,13 @@ services.factory('settings', [
                         }).join(", ");
                 }
 
-                var title = null;
-                if (state == 'playing') {
-                    title = '\u25B6 ' + track.name + ' - ' + artists + ' | Mopidy';
-                } else if (state == 'paused') {
-                    title = '\u2759\u2759 ' + track.name + ' - ' + artists + ' | Mopidy';
+                if(track) {
+                    var title = null;
+                    if (state == 'playing') {
+                        title = '\u25B6 ' + track.name + ' - ' + artists + ' | Mopidy';
+                    } else if (state == 'paused') {
+                        title = '\u2759\u2759 ' + track.name + ' - ' + artists + ' | Mopidy';
+                    }
                 }
 
                 service.get().then(function(settings) {

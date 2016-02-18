@@ -529,9 +529,11 @@ controllers.controller('QueueCtrl', [
 
             m.on('event:tracklistChanged', function () {
                 m.tracklist.getTlTracks().then(function (tracks) {
-                    $scope.$apply(function () {
-                        $scope.tracks = tracks;
-                    });
+                    if(tracks.length !== tracks) {
+                        $scope.$apply(function () {
+                            $scope.tracks = tracks;
+                        });
+                    }
                 });
             });
 
@@ -612,7 +614,12 @@ controllers.controller('QueueCtrl', [
                 });
         };
 
-        $scope.remove = function (track) {
+        $scope.move = function(track, from, to) {
+            $scope.mopidy.tracklist.move(from, from, to);
+        };
+
+        $scope.remove = function (track, index) {
+            $scope.tracks.splice(index, 1);
             $scope.mopidy.tracklist.remove({ tlid: [track.tlid] });
         };
 
