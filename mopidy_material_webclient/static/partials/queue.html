@@ -1,4 +1,4 @@
-<div layout="row" layout-align="center center" ng-if="!tracks" layout-padding>
+<div layout="row" layout-align="center center" ng-if="!tracks" layout-padding layout-margin>
     <md-progress-circular class="md-primary" md-mode="indeterminate"></md-progress-circular>
 </div>
 <div ng-if="tracks.length == 0" flex layout-padding layout-align="center center">
@@ -41,17 +41,17 @@
                                 Repeat
                             </md-button>
                         </md-menu-item>
-                        <md-menu-divider></md-menu-divider>
                         <md-menu-item>
-                            <md-button class="md-accent" ng-click="save($event)">
-                                <md-icon>save</md-icon>
-                                Save Queue
+                            <md-button class="md-primary" ng-click="toggleConsume()" ng-class="consumeOn ? 'md-accent' : ''">
+                                <md-icon class="fa" md-font-icon="fa-refresh"></md-icon>
+                                Consume
                             </md-button>
                         </md-menu-item>
+                        <md-menu-divider></md-menu-divider>
                         <md-menu-item>
-                            <md-button class="md-accent" ng-click="setConsume()">
-                                <md-icon class="fa" md-font-icon="fa-refresh"></md-icon>
-                                Consume Queue
+                            <md-button class="md-accent" ng-click="addQueueToPlaylist()">
+                                <md-icon>save</md-icon>
+                                Add to Playlist
                             </md-button>
                         </md-menu-item>
                         <md-menu-item>
@@ -79,19 +79,20 @@
         <md-list sv-root sv-part="tracks" sv-on-sort="move($item, $indexFrom, $indexTo)">
             <md-list-item class="md-3-line" sv-element ng-repeat="t in tracks"
                 md-swipe-right="remove(t, $index)" md-swipe-left="remove(t, $index)">
-                <md-button class="drag-handle" sv-handle>
+                <md-button class="drag-handle" md-no-ink sv-handle>
                     <md-icon>drag_handle</md-icon>
                 </md-button>
-                <div class="queue-list-item-play">
+                <div class="track-list-item-avatar">
                     <img ng-src="{{ t.track.album.images[0] }}" />
-                    <div class="queue-list-item-play-control show-on-hover" hide-sm>
+                    <div class="track-list-item-avatar-control show-on-hover" hide-sm>
                         <md-icon class="md-accent" ng-click="play(t)" ng-if="t.tlid != playing.tlid || state != 'playing'">play_arrow</md-icon>
                         <md-icon class="md-accent" ng-click="play(t)" ng-if="t.tlid == playing.tlid && state == 'playing'">pause</md-icon>
                     </div>
-                    <div class="queue-list-item-play-control" hide-gt-sm>
+                    <div class="track-list-item-avatar-control" hide-gt-sm>
                         <md-icon class="md-accent" ng-click="play(t)" ng-if="t.tlid != playing.tlid || state != 'playing'">play_arrow</md-icon>
                         <md-icon class="md-accent" ng-click="play(t)" ng-if="t.tlid == playing.tlid && state == 'playing'">pause</md-icon>
                     </div>
+                    <md-progress-circular md-mode="indeterminate" md-diameter="20"></md-progress-circular>
                 </div>
                 <div class="md-list-item-text">
                     <h3>{{ t.track.name }}</h3>
@@ -99,7 +100,7 @@
                     <p ng-if="track.comment">{{ t.track.comment }}</p>
                     <p ng-if="!track.comment">{{ t.track.album.name }}</p>
                 </div>
-                <md-button ng-click="remove(t)" hide-sm>
+                <md-button ng-click="remove(t)" hide-sm class="md-icon-button">
                     <md-icon class="md-secondary" aria-label="Remove">clear</md-icon>
                 </md-button>
             </md-list-item>

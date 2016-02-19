@@ -313,6 +313,8 @@ controllers.controller('LibraryCtrl', [
                     return 'fa-rss';
                 } else if (ref.uri.indexOf('soundcloud:') === 0) {
                     return 'fa-soundcloud';
+                } else if (ref.uri.indexOf('gmusic:') === 0) {
+                    return 'fa-google';
                 } else {
                     return 'fa-folder-o';
                 }
@@ -412,12 +414,19 @@ controllers.controller('PlaylistsCtrl', [
 
         mopidy.then(function (m) {
             $scope.mopidy = m;
+
+            m.tracklist.getLength().then(function(length) {
+                $scope.haveQueue = length > 0;
+            });
+
             if (uri) {
                 $scope.isPlaylist = true;
+
                 m.playlists.lookup(uri).done(
                     function (playlist) {
                         $scope.$apply(function () {
                             $scope.playlist = playlist;
+                            $scope.readOnly = playlist.uri.indexOf('m3u:') !== 0;
                             $scope.content = playlist.tracks;
 
                             var uris = [];
@@ -459,6 +468,8 @@ controllers.controller('PlaylistsCtrl', [
                 return 'fa-rss';
             } else if (ref.uri.indexOf('soundcloud') === 0) {
                 return 'fa-soundcloud';
+            } else if (ref.uri.indexOf('gmusic') === 0) {
+                return 'fa-google';
             } else if ($scope.isPlaylist) {
                 return 'fa-music';
             } else {
@@ -466,7 +477,7 @@ controllers.controller('PlaylistsCtrl', [
             }
         };
 
-        $scope.goTo = function (ref) {
+        $scope.goTo = function(ref) {
             if ($scope.isPlaylist) {
                 $scope.mopidy.tracklist.clear();
                 $scope.mopidy.tracklist.add(null, null, null, [ref.uri])
@@ -478,16 +489,75 @@ controllers.controller('PlaylistsCtrl', [
             }
         };
 
-        $scope.playAll = function () {
+        $scope.replaceQueue = function(startPlayback) {
             $scope.mopidy.tracklist.clear().done(function () {
-                var uris = [];
-                for (var i = 0; i < $scope.content.length; i++) {
-                    uris.push($scope.content[i].uri);
-                }
-                $scope.mopidy.tracklist.add(null, null, null, uris).done(function () {
-                    $scope.mopidy.playback.play();
+                $scope.addPlaylistToQueue(function() {
+                    if(startPlayback) {
+                        $scope.mopidy.playback.play();
+                    }
                 });
             });
+        };
+
+        $scope.addPlaylistToQueue = function(callback) {
+            var uris = [];
+            for (var i = 0; i < $scope.content.length; i++) {
+                uris.push($scope.content[i].uri);
+            }
+
+            $scope.mopidy.tracklist.add(null, null, null, uris).done(function () {
+                if(callback) {
+                    callback();
+                }
+            });
+        };
+
+        $scope.addPlaylistToPlaylist = function() {
+            return $scope.mopidy.addToPlaylist($scope.content);
+        };
+
+        $scope.playNext = function(track) {
+            return $scope.mopidy.tracklist.index().then(function(index) {
+                index = (index === null ? 0 : index);
+                $scope.mopidy.tracklist.add(null, index+1, null, [track.uri]);
+            });
+        };
+
+        $scope.playLast = function(track) {
+            return $scope.mopidy.tracklist.add(null, null, null, [track.uri]);
+        };
+
+        $scope.playNow = function(track) {
+            return $scope.playNext(track).then(function(index) {
+                index = (index === null ? 0 : index);
+                return $scope.mopidy.tracklist.add(null, index, null, [track.uri]);
+            }).then(function() {
+                return $scope.mopidy.playback.next();
+            });
+        };
+
+        $scope.remove = function(index) {
+            $scope.playlist.tracks.splice(index, 1)
+            $scope.save();
+        };
+
+        $scope.save = function() {
+            $scope.mopidy.playlists.save({
+                '__model__': $scope.playlist['__model__'],
+                name: $scope.playlist.name,
+                uri: $scope.playlist.uri,
+                tracks: _.map($scope.playlist.tracks, function(track) {
+                    return _.omitBy(track, function(value, property) {
+                        return property.startsWith('$');
+                    });
+                })
+            });
+
+            return true;
+        };
+
+        $scope.addToPlaylist = function(track) {
+            return $scope.mopidy.addToPlaylist([track]);
         };
     }
 ]);
@@ -524,6 +594,12 @@ controllers.controller('QueueCtrl', [
             m.tracklist.getRepeat().done(function (enabled) {
                 $scope.$apply(function () {
                     $scope.repeatOn = enabled;
+                });
+            });
+
+            m.tracklist.getConsume().done(function (enabled) {
+                $scope.$apply(function () {
+                    $scope.consumeOn = enabled;
                 });
             });
 
@@ -614,8 +690,19 @@ controllers.controller('QueueCtrl', [
                 });
         };
 
+        $scope.toggleConsume = function () {
+            $scope.mopidy.tracklist.setConsume(!$scope.consumeOn).done(
+                function () {
+                    $scope.$apply(function () {
+                        $scope.consumeOn = !$scope.consumeOn;
+                    });
+                });
+        };
+
         $scope.move = function(track, from, to) {
             $scope.mopidy.tracklist.move(from, from, to);
+
+            return true;
         };
 
         $scope.remove = function (track, index) {
@@ -627,64 +714,10 @@ controllers.controller('QueueCtrl', [
             $scope.mopidy.tracklist.clear();
         };
 
-        $scope.setConsume = function () {
-            $scope.mopidy.tracklist.setConsume(true).then();
-        };
-
-        $scope.save = function ($event) {
-            $mdDialog.show({
-                targetEvent: $event,
-                parent: angular.element(document.body),
-                template:
-                    '<md-dialog aria-label="Save playlist" flex="20">' +
-                        '  <md-dialog-content>' +
-                        '    <h3 class="md-title">New playlist</h3>' +
-                        '    <form>' +
-                        '      <md-input-container flex>' +
-                        '        <label>Name</label>' +
-                        '        <input type="text" required ng-model="name"/>' +
-                        '      </md-input-container>' +
-                        '    </form>' +
-                        '  </md-dialog-content>' +
-                        '  <div class="md-actions">' +
-                        '    <md-button ng-click="cancel()" class="md-primary">' +
-                        '      Cancel' +
-                        '    </md-button>' +
-                        '    <md-button ng-click="save()" class="md-primary">' +
-                        '      Create playlist' +
-                        '    </md-button>' +
-                        '  </div>' +
-                        '</md-dialog>',
-                controller: SaveDialogController
-            }).then(function (name) {
-                if (!name) {
-                    return;
-                }
-
-                $scope.mopidy.playlists.create(name, 'm3u').done(function (newPlaylist) {
-                    newPlaylist.tracks = [];
-                    for (var i = 0; i < $scope.tracks.length; i++) {
-                        newPlaylist.tracks.push($scope.tracks[i].track);
-                    }
-                    $scope.mopidy.playlists.save(newPlaylist).done(function (playlist) {
-                        $mdToast.show(
-                            $mdToast.simple()
-                            .content('New playlist ' + playlist.name + ' created')
-                            .position('bottom')
-                            .hideDelay(1500)
-                        );
-                    });
-                });
-            });
-
-            function SaveDialogController($scope, $mdDialog) {
-                $scope.cancel = function () {
-                    $mdDialog.cancel();
-                };
-                $scope.save = function () {
-                    $mdDialog.hide($scope.name);
-                };
-            }
+        $scope.addQueueToPlaylist = function () {
+            $scope.mopidy.addToPlaylist(_.map($scope.tracks, function(track) {
+                return track.track;
+            }));
         };
     }
 ]);

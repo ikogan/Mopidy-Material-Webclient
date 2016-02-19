@@ -1,7 +1,7 @@
 ﻿var services = angular.module('mopServices', []);
 
-services.factory('mopidy', ['$q', '$rootScope', '$location', 'settings',
-    function ($q, $rootScope, $location, settings) {
+services.factory('mopidy', ['$q', '$rootScope', '$location', '$mdDialog', 'settings',
+    function ($q, $rootScope, $location, $mdDialog, settings) {
         var mopidy = new Mopidy();
         return $q(function (resolve, reject) {
             mopidy.on("state:online", function () {
@@ -28,6 +28,71 @@ services.factory('mopidy', ['$q', '$rootScope', '$location', 'settings',
                         mopidy.tracklist.add(null, position + 1, null, [uri]).then(function (tracks) {
                             mopidy.playback.play(tracks[0]);
                         });
+                    });
+                };
+
+                mopidy.addToPlaylist = function(tracks) {
+                    return $mdDialog.show({
+                        controller: ['$scope', '$mdDialog', '$mdToast', function($scope, $mdDialog, $mdToast) {
+                            $scope.newPlaylist = false;
+
+                            mopidy.playlists.asList().then(function(playlists) {
+                                $scope.playlists = _.filter(playlists, function(playlist) {
+                                    return playlist.uri.startsWith('m3u:');
+                                });
+                            });
+
+                            $scope.cancel = function() {
+                                $mdDialog.cancel();
+                            };
+
+                            $scope.add = function() {
+                                var playlist = $scope.playlists[$scope.playlist];
+                                var message;
+                                var promise;
+
+                                function updatePlaylist(playlist) {
+                                    playlist = {
+                                        '__model__': 'Playlist',
+                                        name: playlist.name,
+                                        uri: playlist.uri,
+                                        tracks: _.map(tracks, function(track) {
+                                            return _.omitBy(track, function(value, property) {
+                                                return property.startsWith('$');
+                                            })
+                                        })
+                                    };
+
+                                    return mopidy.playlists.save(playlist).then(function() {
+                                        $mdToast.show(
+                                            $mdToast.simple()
+                                            .content(message)
+                                            .position('bottom')
+                                            .hideDelay(1500)
+                                        );
+                                    });
+                                }
+
+                                if($scope.playlist === -1) {
+                                    message = 'New playlist ' + $scope.name + ' created';
+                                    promise = mopidy.playlists.create($scope.name).then(function(playlist){
+                                        return updatePlaylist(playlist);
+                                    });
+                                } else {
+                                    message = 'Playlist ' + playlist.name + ' updated';
+                                    promise = mopidy.playlists.lookup(playlist.uri).then(function(pts) {
+                                        tracks = _.union(pts.tracks, tracks);
+                                        updatePlaylist(playlist);
+                                    });
+                                }
+
+                                promise.then(function() {
+                                    $mdDialog.hide();
+                                });
+                            };
+                        }],
+                        templateUrl: 'partials/add-to-playlist-dialog.html',
+                        clickOutsideToClose: true
                     });
                 };
 

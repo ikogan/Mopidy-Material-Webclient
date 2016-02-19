@@ -1,0 +1,26 @@
+<md-dialog aria-label="Add to Playlist">
+    <form name="form">
+        <md-dialog-content>
+            <h3 class="md-title">Add to Playlist</h3>
+
+            <div layout="row" layout-align="center center">
+                <md-select placeholder="Playlist" ng-model="playlist" required ng-disabled="!playlists">
+                    <md-option ng-value="-1">New Playlist</md-option>
+                    <md-divider></md-divider>
+                    <md-option ng-value="$index" ng-repeat="p in playlists">{{ p.name }}</md-option>
+                </md-select>
+
+                <md-progress-circular md-mode="indeterminate" md-diameter="10" ng-hide="playlists"></md-progress-circular>
+            </div>
+
+            <md-input-container flex ng-if="playlist == -1">
+                <label>Name</label>
+                <input type="text" required ng-model="name" required />
+            </md-input-container>
+        </md-dialog-content>
+        <div class="md-actions" layout="row" layout-align="center center">
+            <md-button ng-click="cancel()">Cancel</md-button>
+            <md-button ng-click="add()" class="md-primary" ng-disabled="form.$invalid">Add</md-button>
+        </div>
+    </form>
+</md-dialog>

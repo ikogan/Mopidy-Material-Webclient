@@ -10,22 +10,81 @@
                         <img ng-src="{{ image }}" class="img-responsive" />
                     </div>
                 </div>
-                <md-card-actions layout="row">
-                    <div layout-fill>
-                        <h2 class="md-title" layout-fill>{{ playlist.name }}</h2>
+                <md-card-actions layout="row" layout-align="start center">
+                    <div flex>
+                        <h2 class="md-title">{{ playlist.name }}</h2>
                     </div>
-                    <md-button class="md-icon-button md-primary" ng-click="playAll()">
-                        <md-icon>play_arrow</md-icon>
-                    </md-button>
+                    <md-card-icon-actions layout="row" layout-align="end center">
+                        <md-button class="md-primary md-icon-button" ng-click="replaceQueue(true)">
+                            <md-icon>play_arrow</md-icon>
+                        </md-button>
+                        <md-menu>
+                            <md-button class="md-icon-button" ng-click="$mdOpenMenu($event)">
+                                <md-icon md-menu-origin>menu</md-icon>
+                            </md-button>
+                            <md-menu-content>
+                                <md-menu-item>
+                                    <md-button ng-click='addPlaylistToQueue()' ng-if="haveQueue">Add to Queue</md-button>
+                                </md-menu-item>
+                                <md-menu-item>
+                                    <md-button ng-click='addPlaylistToPlaylist()' ng-if="haveQueue">Add to Playlist</md-button>
+                                </md-menu-item>
+                                <md-menu-item>
+                                    <md-button ng-click='replaceQueue()' ng-if="haveQueue">Replace Queue</md-button>
+                                </md-menu-item>
+                            </md-menu-content>
+                        </md-menu>
+                    </md-card-icon-actions>
                 </md-card-actions>
             </md-card-content>
         </md-card>
     </div>
-    <md-list flex class="tracklist">
+    <md-list flex class="tracklist" ng-if="!isPlaylist">
         <md-list-item ng-repeat="ref in content" ng-click="goTo(ref)">
-            <md-icon md-font-icon="{{ getFontIcon(ref) }}" class="fa md-list-icon-fa" ng-if="!ref.images || ref.images.length == 0"></md-icon>
-            <img class="md-avatar" ng-src="{{ ref.images[0].uri }}" alt="{{ ref.name }}" ng-if="ref.images && ref.images.length > 0" />
+            <md-icon md-font-icon="{{ getFontIcon(ref) }}" class="fa md-list-icon-fa" ng-if="!ref.album.images || ref.album.images.length == 0"></md-icon>
+            <img class="md-avatar" ng-src="{{ ref.album.images[0] }}" alt="{{ ref.name }}" ng-if="ref.album.images && ref.album.images.length > 0" />
             <p>{{ ref.name }}</p>
+        </md-list-item>
+    </md-list>
+    <md-list flex class="tracklist" ng-if="isPlaylist" sv-root sv-part="content" sv-on-sort="save()">
+        <md-list-item class="md-3-line" ng-repeat="ref in content" sv-element md-swipe-right="remove($index)" md-swipe-left="remove($index)">
+            <md-button class="drag-handle" ng-show="!readOnly" sv-handle md-no-ink>
+                <md-icon>drag_handle</md-icon>
+            </md-button>
+            <div class="track-list-item-avatar">
+                <md-icon md-font-icon="{{ getFontIcon(ref) }}" class="fa md-list-icon-fa avatar" ng-if="!ref.album.images || ref.album.images.length == 0"></md-icon>
+                <img class="md-avatar" ng-src="{{ ref.album.images[0] }}" alt="{{ ref.name }}" ng-if="ref.album.images && ref.album.images.length > 0" />
+                <md-progress-circular ng-if="ref.album.images" md-mode="indeterminate" md-diameter="20"></md-progress-circular>
+            </div>
+            <div class="md-list-item-text">
+                <h3>{{ ref.name }}</h3>
+                <h4 ng-if="ref.artists">{{ ref.artists[0].name }}</h4>
+                <p ng-if="ref.comment">{{ ref.comment }}</p>
+                <p ng-if="!ref.comment">{{ ref.album.name }}</p>
+            </div>
+            <md-menu md-position-mode="target-right target">
+                <md-button aria-label="Track Actions" class="md-icon-button" ng-click="$mdOpenMenu($event)">
+                    <md-icon class="md-secondary" md-menu-origin>menu</md-icon>
+                </md-button>
+                <md-menu-content>
+                    <md-menu-item>
+                        <md-button ng-click='playNext(ref)' ng-if="haveQueue">Play Next</md-button>
+                    </md-menu-item>
+                    <md-menu-item>
+                        <md-button ng-click='playLast(ref)' ng-if="haveQueue">Play Last</md-button>
+                    </md-menu-item>
+                    <md-menu-item>
+                        <md-button ng-click='playNow(ref)'>Play Now</md-button>
+                    </md-menu-item>
+                    <md-menu-divider></md-menu-divider>
+                    <md-menu-item>
+                        <md-button ng-click='addToPlaylist(ref)'>Add to Playlist</md-button>
+                    </md-menu-item>
+                    <md-menu-item ng-if="!readOnly">
+                        <md-button ng-click='remove($index)'>Remove</md-button>
+                    </md-menu-item>
+                </md-menu-content>
+            </md-menu>
         </md-list-item>
     </md-list>
 </div>
