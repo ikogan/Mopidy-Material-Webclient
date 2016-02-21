@@ -23,6 +23,28 @@ services.factory('mopidy', ['$q', '$rootScope', '$location', '$mdDialog', 'setti
                     settings.updatePageTitle(e.new_state, mopidy.nowPlaying);
                 });
 
+                mopidy.getFontIcon = function (ref) {
+                    if (ref.type && ref.type.toLowerCase() == 'track') {
+                        return 'fa-music';
+                    } else {
+                        if (ref.uri.indexOf('spotify') === 0) {
+                            return 'fa-spotify';
+                        } else if (ref.uri.indexOf('tunein:') === 0) {
+                            return 'fa-headphones';
+                        } else if (ref.uri.indexOf('podcast:') === 0) {
+                            return 'fa-rss';
+                        } else if (ref.uri.indexOf('soundcloud:') === 0) {
+                            return 'fa-soundcloud';
+                        } else if (ref.uri.indexOf('gmusic:') === 0) {
+                            return 'fa-google';
+                        } else if (ref.uri.indexOf('file:') === 0) {
+                            return 'fa-music';
+                        } else {
+                            return 'fa-folder-o';
+                        }
+                    }
+                };
+
                 mopidy.play = function (uri) {
                     mopidy.tracklist.index(mopidy.nowPlaying).then(function (position) {
                         mopidy.tracklist.add(null, position + 1, null, [uri]).then(function (tracks) {

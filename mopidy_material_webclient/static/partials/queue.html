@@ -17,7 +17,7 @@
 </div>
 <div layout-gt-md="row" layout="column" ng-if="tracks.length > 0">
     <div flex-gt-md="33" flex>
-        <md-card id="mod-now-playing-card" ng-if="playing">
+        <md-card id="mod-now-playing-card">
             <img ng-if="playing.track.album.images.length > 0" ng-src="{{ playing.track.album.images[playing.track.album.images.length - 1] }}" class="md-card-image" alt="{{ playing.track.name }}">
             <md-card-content>
                 <h2 class="md-title">{{ playing.track.name }}</h2>
@@ -62,43 +62,40 @@
                         </md-menu-item>
                     </md-menu-content>
                 </md-menu>
-                <md-button class="md-primary md-icon-button" ng-click="previous()">
+                <md-button class="md-primary md-icon-button" ng-click="previous()" aria-label="Previous track">
                     <md-icon>fast_rewind</md-icon>
                 </md-button>
-                <md-button class="md-primary md-icon-button" ng-click="play()">
+                <md-button class="md-primary md-icon-button" ng-click="play()" aria-label="Play/Pause">
                     <md-icon class="md-accent" ng-if="state != 'playing'">play_arrow</md-icon>
                     <md-icon class="md-accent" ng-if="state == 'playing'">pause</md-icon>
                 </md-button>
-                <md-button class="md-primary md-icon-button" ng-click="next()">
+                <md-button class="md-primary md-icon-button" ng-click="next()" aria-label="Next track">
                     <md-icon>fast_forward</md-icon>
                 </md-button>
             </div>
         </md-card>
     </div>
     <div flex layout-fill class="tracklist">
-        <md-list sv-root sv-part="tracks" sv-on-sort="move($item, $indexFrom, $indexTo)">
-            <md-list-item class="md-3-line" sv-element ng-repeat="t in tracks"
+        <md-list sv-root sv-part="tracks" sv-on-sort="move($item, $indexFrom, $indexTo)"
+            mop-drag-scroll mop-drag-scroll-bounds="md-content" mop-drag-scroll-container="md-content">
+            <md-list-item class="md-3-line" sv-element ng-repeat="t in tracks" ng-class="{playing: nowPlaying.tlid == t.tlid}"
                 md-swipe-right="remove(t, $index)" md-swipe-left="remove(t, $index)">
                 <md-button class="drag-handle" md-no-ink sv-handle>
                     <md-icon>drag_handle</md-icon>
                 </md-button>
-                <div class="track-list-item-avatar">
-                    <img ng-src="{{ t.track.album.images[0] }}" />
-                    <div class="track-list-item-avatar-control show-on-hover" hide-sm>
-                        <md-icon class="md-accent" ng-click="play(t)" ng-if="t.tlid != playing.tlid || state != 'playing'">play_arrow</md-icon>
-                        <md-icon class="md-accent" ng-click="play(t)" ng-if="t.tlid == playing.tlid && state == 'playing'">pause</md-icon>
+                <div md-ink-ripple class="click-target" ng-click="play(t)" layout="row" layout-align="start center" flex>
+                    <div class="track-list-item-avatar">
+                        <md-icon md-font-icon="{{ mopidy.getFontIcon(t.track) }}" class="fa md-list-icon-fa avatar"
+                            ng-if="!t.track.album.images || t.track.album.images.length == 0"></md-icon>
+                        <img ng-if="t.track.album.images.length > 0" ng-src="{{ t.track.album.images[0] }}" />
+                        <md-progress-circular ng-if="t.track.album.images.length > 0" md-mode="indeterminate" md-diameter="20"></md-progress-circular>
                     </div>
-                    <div class="track-list-item-avatar-control" hide-gt-sm>
-                        <md-icon class="md-accent" ng-click="play(t)" ng-if="t.tlid != playing.tlid || state != 'playing'">play_arrow</md-icon>
-                        <md-icon class="md-accent" ng-click="play(t)" ng-if="t.tlid == playing.tlid && state == 'playing'">pause</md-icon>
+                    <div class="md-list-item-text">
+                        <h3>{{ t.track.name }}&nbsp;</h3>
+                        <h4>{{ t.track.artists[0].name }}&nbsp;</h4>
+                        <p ng-if="track.comment">{{ t.track.comment }}&nbsp;</p>
+                        <p ng-if="!track.comment">{{ t.track.album.name }}&nbsp;</p>
                     </div>
-                    <md-progress-circular md-mode="indeterminate" md-diameter="20"></md-progress-circular>
-                </div>
-                <div class="md-list-item-text">
-                    <h3>{{ t.track.name }}</h3>
-                    <h4>{{ t.track.artists[0].name }}</h4>
-                    <p ng-if="track.comment">{{ t.track.comment }}</p>
-                    <p ng-if="!track.comment">{{ t.track.album.name }}</p>
                 </div>
                 <md-button ng-click="remove(t)" hide-sm class="md-icon-button">
                     <md-icon class="md-secondary" aria-label="Remove">clear</md-icon>

@@ -32,7 +32,7 @@
         </md-card>
     </div>
     <md-list ng-if="!loading && (content.length > 0)" flex>
-        <div id="search-library" class="md-whiteframe-z3" ng-if="uri">
+        <div class="search md-whiteframe-z3" ng-if="uri">
             <form ng-submit="search(uri, query)">
                 <md-input-container md-no-float>
                     <md-icon>search</md-icon>
@@ -40,15 +40,26 @@
                 </md-input-container>
             </form>
         </div>
+        <md-list-item ng-click="back()" ng-if="uri">
+            <md-icon md-font-icon="fa-level-up" class="fa md-list-icon-fa"></md-icon>
+            <p>..</p>
+        </md-list-item>
         <md-list-item ng-repeat="ref in content" ng-click="goTo(ref)">
-            <md-icon md-font-icon="{{ getFontIcon(ref) }}" class="fa md-list-icon-fa" ng-if="!ref.image"></md-icon>
+            <md-icon md-font-icon="{{ mopidy.getFontIcon(ref) }}" class="fa md-list-icon-fa" ng-if="!ref.image"></md-icon>
             <img class="md-avatar" ng-src="{{ ref.image }}" alt="{{ ref.name }}" ng-if="ref.image" />
             <p>{{ ref.name }}</p>
-            <md-icon class="md-secondary" aria-label="More" ng-click="showTrackActions($event, ref)" ng-if="ref.type == 'track'">more_vert</md-icon>
         </md-list-item>
     </md-list>
-    <div ng-if="!loading && content.length == 0" flex layout-padding>
-        <h4 class="md-title"><md-icon>warning</md-icon> Nothing to see here!</h4>
-        <p class="md-body2">You've reached the end of line, <md-button class="md-accent" ng-click="back()">back up a bit</md-button> and try somewhere else</p>
+    <div ng-if="!loading && content.length == 0" flex layout-padding layout-align="center center">
+        <md-card flex="50">
+            <md-card-title>
+                <md-card-title-text>
+                    <span class="md-headline"><md-icon>warning</md-icon> Nothing to see here!</span>
+                </md-card-title-text>
+            </md-card-title>
+            <md-card-content>
+                <p>You've reached the end of line, <md-button class="md-accent" ng-click="back()">back up a bit</md-button> and try somewhere else</p>
+            </md-card-content>
+        </md-card>
     </div>
 </div>

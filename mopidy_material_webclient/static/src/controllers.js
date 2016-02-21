@@ -124,9 +124,12 @@ controllers.controller('AppCtrl', [
         });
 
         $scope.getInfo = function (track) {
-            if (!track || track.artists.length === 0) {
+            if (!track || !track.artists || track.artists.length === 0) {
                 return;
             }
+
+            $scope.nowPlaying.hasMetadata = true;
+
             lastfm.getTrack(track).success(function (trackInfo) {
                 var t = trackInfo.track;
                 if (!t) {
@@ -285,59 +288,24 @@ controllers.controller('LibraryCtrl', [
                     }
                 });
             }
-
-            m.playlists.lookup('m3u:Favourites.m3u').done(function (playlist) {
-                if (!playlist) {
-                    m.playlists.create('Favourites', 'm3u').done(function (newPlaylist) {
-                        $scope.favourites = newPlaylist;
-                    });
-                } else {
-                    $scope.favourites = playlist;
-                }
-            });
         });
 
         $scope.asTrusted = function (summary) {
             return $sce.trustAsHtml(summary);
         };
 
-        $scope.getFontIcon = function (ref) {
-            if (ref.type.toLowerCase() == 'track') {
-                return 'fa-music';
-            } else {
-                if (ref.uri.indexOf('spotify') === 0) {
-                    return 'fa-spotify';
-                } else if (ref.uri.indexOf('tunein:') === 0) {
-                    return 'fa-headphones';
-                } else if (ref.uri.indexOf('podcast:') === 0) {
-                    return 'fa-rss';
-                } else if (ref.uri.indexOf('soundcloud:') === 0) {
-                    return 'fa-soundcloud';
-                } else if (ref.uri.indexOf('gmusic:') === 0) {
-                    return 'fa-google';
-                } else {
-                    return 'fa-folder-o';
-                }
-            }
-        };
-
         $scope.goTo = function (ref) {
             if (ref.type != 'track') {
                 $location.path('library/' + ref.type + '/' + encodeURIComponent(ref.uri));
             } else {
-                $scope.mopidy.play(ref.uri);
+                $mdBottomSheet.show({
+                    templateUrl: 'partials/track-actions.html',
+                    controller: 'TrackActionsCtrl',
+                    locals: {
+                        'track': ref
+                    }
+                });
             }
-        };
-
-        $scope.playAll = function () {
-            $scope.mopidy.tracklist.clear();
-            var uris = [];
-            for (var i = 0; i < $scope.tracks.length; i++) {
-                uris.push($scope.tracks[i].uri);
-            }
-            $scope.mopidy.tracklist.add(null, null, null, uris).then(function () {
-                $scope.mopidy.playback.play();
-            });
         };
 
         $scope.back = function () {
@@ -348,68 +316,13 @@ controllers.controller('LibraryCtrl', [
             $location.path('search/' + encodeURIComponent(uri) + '/' + encodeURIComponent(query));
         };
 
-        $scope.showTrackActions = function ($event, track) {
 
-            var child = $scope.$new();
-
-            if ($scope.favourites.tracks) {
-                child.isFavourite = $scope.favourites.tracks.some(function (itm) {
-                    return itm.uri == track.uri;
-                });
-            }
-
-            $mdBottomSheet.show({
-                templateUrl: 'partials/track-actions.html',
-                controller: 'TrackActionsCtrl',
-                targetEvent: $event,
-                scope: child
-            }).then(function (clickedItem) {
-                if (clickedItem == 'play-next') {
-                    $scope.mopidy.playback.getCurrentTlTrack().done(function (current) {
-                        console.log(current);
-                        $scope.mopidy.tracklist.index(current).done(function (index) {
-                            $scope.mopidy.tracklist.add(null, index + 1, null, [track.uri]);
-                        });
-                    });
-                } else if (clickedItem == 'add-to-queue') {
-                    $scope.mopidy.tracklist.add(null, null, null, [track.uri]);
-                } else if (clickedItem == 'add-to-favourites') {
-                    $scope.addToFavourites(track.uri);
-                } else if (clickedItem == 'remove-from-favourites') {
-                    $scope.removeFromFavourites(track.uri);
-                }
-            });
-        };
-
-        $scope.addToFavourites = function (uri) {
-            $scope.mopidy.library.lookup(uri).done(function (tracks) {
-                if (!$scope.favourites.tracks) {
-                    $scope.favourites.tracks = tracks;
-                } else {
-                    $scope.favourites.tracks.push(tracks[0]);
-                }
-                $scope.mopidy.playlists.save($scope.favourites).done(function (playlist) {
-                    $scope.favourites = playlist;
-                });
-            });
-        };
-
-        $scope.removeFromFavourites = function (uri) {
-            for (var i = 0; i < $scope.favourites.tracks.length; i++) {
-                if ($scope.favourites.tracks[i].uri == uri) {
-                    $scope.favourites.tracks.splice(i, 1);
-                }
-            }
-            $scope.mopidy.playlists.save($scope.favourites).done(function (playlist) {
-                $scope.favourites = playlist;
-            });
-        };
     }
 ]);
 
 controllers.controller('PlaylistsCtrl', [
-    '$scope', '$routeParams', '$location', 'mopidy',
-    function ($scope, $routeParams, $location, mopidy) {
+    '$scope', '$routeParams', '$location', '$mdBottomSheet', 'mopidy',
+    function ($scope, $routeParams, $location, $mdBottomSheet, mopidy) {
         var uri = $routeParams.uri;
 
         mopidy.then(function (m) {
@@ -448,14 +361,12 @@ controllers.controller('PlaylistsCtrl', [
                         });
                     });
             } else {
-                m.playlists.refresh().done(function () {
-                    m.playlists.asList().done(
-                        function (content) {
-                            $scope.$apply(function () {
-                                $scope.content = content;
-                            });
+                m.playlists.asList().done(
+                    function (content) {
+                        $scope.$apply(function () {
+                            $scope.content = content;
                         });
-                });
+                    });
             }
         });
 
@@ -477,13 +388,27 @@ controllers.controller('PlaylistsCtrl', [
             }
         };
 
+        $scope.refreshPlaylists = function() {
+            $scope.content = null;
+
+            $scope.mopidy.playlists.refresh().then(function() {
+                $scope.mopidy.playlists.asList().then(function(content) {
+                    $scope.$apply(function() {
+                        $scope.content = content;
+                    });
+                });
+            });
+        };
+
         $scope.goTo = function(ref) {
             if ($scope.isPlaylist) {
-                $scope.mopidy.tracklist.clear();
-                $scope.mopidy.tracklist.add(null, null, null, [ref.uri])
-                    .then(function () {
-                        $scope.mopidy.playback.play();
-                    });
+                $mdBottomSheet.show({
+                    templateUrl: 'partials/track-actions.html',
+                    controller: 'TrackActionsCtrl',
+                    locals: {
+                        'track': ref
+                    }
+                });
             } else {
                 $location.path('playlists/' + ref.uri);
             }
@@ -516,26 +441,6 @@ controllers.controller('PlaylistsCtrl', [
             return $scope.mopidy.addToPlaylist($scope.content);
         };
 
-        $scope.playNext = function(track) {
-            return $scope.mopidy.tracklist.index().then(function(index) {
-                index = (index === null ? 0 : index);
-                $scope.mopidy.tracklist.add(null, index+1, null, [track.uri]);
-            });
-        };
-
-        $scope.playLast = function(track) {
-            return $scope.mopidy.tracklist.add(null, null, null, [track.uri]);
-        };
-
-        $scope.playNow = function(track) {
-            return $scope.playNext(track).then(function(index) {
-                index = (index === null ? 0 : index);
-                return $scope.mopidy.tracklist.add(null, index, null, [track.uri]);
-            }).then(function() {
-                return $scope.mopidy.playback.next();
-            });
-        };
-
         $scope.remove = function(index) {
             $scope.playlist.tracks.splice(index, 1)
             $scope.save();
@@ -554,10 +459,6 @@ controllers.controller('PlaylistsCtrl', [
             });
 
             return true;
-        };
-
-        $scope.addToPlaylist = function(track) {
-            return $scope.mopidy.addToPlaylist([track]);
         };
     }
 ]);
@@ -935,8 +836,41 @@ controllers.controller('AboutCtrl', [
         };
     }]);
 
-controllers.controller('TrackActionsCtrl', function ($scope, $mdBottomSheet) {
-    $scope.listItemClick = function (clickedItem) {
-        $mdBottomSheet.hide(clickedItem);
-    };
-});
+controllers.controller('TrackActionsCtrl', ['$scope', '$mdBottomSheet', 'mopidy', 'track',
+    function ($scope, $mdBottomSheet, mopidy, track) {
+
+    mopidy.then(function(m) {
+        $scope.addToQueue = function(track) {
+            return m.tracklist.index().then(function(index) {
+                index = (index === null ? 0 : index+1);
+                return { 'index': index, 'track': m.tracklist.add(null, index, null, [track.uri]) };
+            });
+        };
+
+        $scope.playNext = function() {
+            $mdBottomSheet.hide($scope.addToQueue(track));
+        };
+
+        $scope.playLast = function() {
+            $mdBottomSheet.hide(m.tracklist.add(null, null, null, [track.uri]));
+        };
+
+        $scope.playNow = function() {
+            $mdBottomSheet.hide($scope.addToQueue(track).then(function(result) {
+                if(result.index) {
+                    return m.playback.next();
+                } else{
+                    return m.playback.play();
+                }
+            }));
+        };
+
+        $scope.addToPlaylist = function() {
+            $mdBottomSheet.hide(m.addToPlaylist([{
+                '__model__': 'Track',
+                name: track.name,
+                uri: track.uri
+            }]));
+        };
+    });
+}]);

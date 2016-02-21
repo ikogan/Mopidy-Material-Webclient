@@ -40,21 +40,21 @@ button {
     }
 }
 
-#search-library {
+.search {
     margin: 8px;
     padding: 16px 8px 24px;
 
     form {
         margin: 0;
-
-        md-input-container {
-            padding: 0;
-        }
     }
-}
 
-.md-card-image {
-    height: auto;
+    md-input-container {
+        padding: 0;
+    }
+
+    .md-button {
+        margin-top: 0 !important;
+    }
 }
 
 .album-image {
@@ -72,7 +72,7 @@ md-icon.fa {
 
 .track-list-item-avatar {
     border: 1px solid black;
-    margin-top: 0.8em;
+    background-color: white;
     position: relative;
     height: 3.5em;
     width: 3.5em;
@@ -98,31 +98,6 @@ md-icon.fa {
     left: 0.2em;
 }
 
-.track-list-item-avatar-control {
-    z-index: 20;
-    content: '\A';
-    position: absolute;
-    width: 3.5em;
-    height: 3.5em;
-    top: 0;
-    background: rgba(0,0,0,0.6);
-    transition: all 0.5s;
-    -webkit-transition: all 0.5s;
-    cursor: pointer;
-}
-
-.track-list-item-avatar-control md-icon {
-    display: block;
-    z-index: 20;
-    cursor: pointer;
-    margin-top: 0.4em;
-    margin-left: 0.4em;
-    font-size: 2em;
-    font-weight: bold;
-    text-shadow: -1px 1px 2px #444444;
-    color: white;
-}
-
 .show-on-hover {
     opacity: 0;
 }
@@ -144,7 +119,16 @@ md-icon.fa {
 }
 
 .tracklist .md-button {
-    margin-top: 1.5em;
+    margin-top: 1.8em;
+}
+
+.tracklist .click-target {
+    position: relative;
+    cursor: pointer;
+}
+
+.tracklist .click-target:focus {
+    outline: 0;
 }
 
 .tracklist p {

@@ -1,4 +1,4 @@
-﻿var app = angular.module('MopidyApp', ['ngRoute', 'ngMaterial', 'angular-sortable-view', 'mopControllers', 'mopServices']);
+﻿var app = angular.module('MopidyApp', ['ngRoute', 'ngMaterial', 'angular-sortable-view', 'mopControllers', 'mopServices', 'mopDirectives']);
 
 app.config(function($mdThemingProvider) {
     $mdThemingProvider.theme('default')

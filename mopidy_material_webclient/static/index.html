@@ -57,7 +57,10 @@
             <md-toolbar layout="column" class="md-whiteframe-z4 md-accent" ng-if="nowPlaying || showNowPlaying">
                 <div class="md-toolbar-tools" layout="row">
                     <img class="now-playing-avatar" ng-src="{{ nowPlaying.album.images[0] }}" alt="{{ nowPlaying.name }}" ng-if="nowPlaying.album.images.length > 0" />
-                    <span flex ng-if="nowPlaying">{{ nowPlaying.name }} - {{ nowPlaying.artists[0].name }}</span>
+                    <span flex ng-if="nowPlaying">
+                        {{ nowPlaying.name }}
+                        <span ng-if="nowPlaying.hasMetadata">- {{ nowPlaying.artists[0].name }}</span>
+                    </span>
                     <md-button class="md-icon-button" ng-if="state != 'playing'" ng-click="play()">
                         <md-icon>play_arrow</md-icon>
                     </md-button>
@@ -80,5 +83,6 @@
     <script src="/material-webclient/src/app.js"></script>
     <script src="/material-webclient/src/controllers.js"></script>
     <script src="/material-webclient/src/services.js"></script>
+    <script src="/material-webclient/src/directives.js"></script>
 </body>
 </html>
