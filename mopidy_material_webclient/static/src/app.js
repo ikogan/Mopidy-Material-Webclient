@@ -29,6 +29,10 @@ app.config(['$routeProvider',
                 templateUrl: 'partials/playlists.html',
                 controller: 'PlaylistsCtrl'
             }).
+            when('/search/:query', {
+                templateUrl: 'partials/search.html',
+                controller: 'SearchCtrl'
+            }).
             when('/search/:uri/:query', {
                 templateUrl: 'partials/search.html',
                 controller: 'SearchCtrl'

@@ -66,7 +66,7 @@ directives.directive('mopDragScroll', ['$document', '$rootScope', '$compile', '$
                             $document.on('mousemove', scroll);
                         })
 
-                        $rootScope.$on('mopDraggingEnd', function() {
+                        $rootScope.$on('mopDraggingStop', function() {
                             $document.off('mousemove', scroll);
                             scroll();
                         });

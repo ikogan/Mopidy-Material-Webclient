@@ -49,6 +49,9 @@
                         <md-icon>menu</md-icon>
                     </md-button>
                     <span flex>{{ heading }}</span>
+                    <md-button class="md-icon-button" aria-label="Search" ng-click="globalSearch()">
+                        <md-icon>search</md-icon>
+                    </md-button>
                 </div>
             </md-toolbar>
             <md-content layout="column" flex>
@@ -79,10 +82,6 @@
     <script src="/material-webclient/scripts/angular-route.min.js"></script>
     <script src="/material-webclient/scripts/angular-sortable-view.min.js"></script>
     <script src="/material-webclient/scripts/lodash.min.js"></script>
-    <!-- <script src="/material-webclient/scripts/app.min.js"></script> -->
-    <script src="/material-webclient/src/app.js"></script>
-    <script src="/material-webclient/src/controllers.js"></script>
-    <script src="/material-webclient/src/services.js"></script>
-    <script src="/material-webclient/src/directives.js"></script>
+    <script src="/material-webclient/scripts/app.min.js"></script>
 </body>
 </html>

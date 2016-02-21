@@ -57,7 +57,8 @@
     </md-list>
     <md-list flex class="tracklist" ng-if="isPlaylist" sv-root sv-part="content" sv-on-sort="save()"
         mop-drag-scroll mop-drag-scroll-bounds="md-content" mop-drag-scroll-container="md-content">
-        <md-list-item class="md-3-line" ng-repeat="ref in content" sv-element md-swipe-right="remove($index)" md-swipe-left="remove($index)">
+        <md-list-item class="md-3-line" ng-repeat="ref in content" sv-element
+            md-swipe-right="remove(ref, $index)" md-swipe-left="remove(ref, $index)">
             <md-button class="drag-handle" ng-show="!readOnly" sv-handle md-no-ink>
                 <md-icon>drag_handle</md-icon>
             </md-button>
